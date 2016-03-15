@@ -17,8 +17,6 @@
 
 #include "third_party/assert_exception.h"
 
-#include "util.h"
-
 /// Adjacency list representation of graph
 /// Store both out and in edges for every node
 /// N.B. In many methods, returning a Graph is ok
