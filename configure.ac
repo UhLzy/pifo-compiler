@@ -23,6 +23,9 @@ utility vector], [], [AC_MSG_ERROR([Missing header file])])
 # C++ libraries are harder to check (http://nerdland.net/2009/07/detecting-c-libraries-with-autotools/),
 # so use headers to check
 
+# Check for libcgraph to read and parse dot files
+PKG_CHECK_MODULES([libcgraph], [libcgraph])
+
 # Checks for typedefs, structures, and compiler characteristics.
 AC_TYPE_SIZE_T
 AC_TYPE_UINT64_T
