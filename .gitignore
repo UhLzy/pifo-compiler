@@ -22,3 +22,5 @@ config.sub
 libtool
 ltmain.sh
 *.lo
+*.pdf
+*.gv

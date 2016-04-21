@@ -1,0 +1,7 @@
+digraph {
+	A [label=Root predicate=True schedule=WFQ_Root]
+	B [label=Left predicate="p.class==Left" schedule=WFQ_Left]
+	C [label=Right predicate="p.class==Right" schedule=WFQ_Right]
+		A -> B
+		A -> C
+}

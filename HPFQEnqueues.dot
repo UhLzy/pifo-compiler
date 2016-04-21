@@ -1,0 +1,11 @@
+digraph {
+	Root
+	Right
+	Left
+	EXTLeft
+	EXTRight
+		EXTLeft -> Left
+		EXTLeft -> Root
+		EXTRight -> Right
+		EXTRight -> Root
+}

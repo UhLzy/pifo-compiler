@@ -1,0 +1,7 @@
+digraph {
+	Root [label=Root predicate=True schedule=WFQ_Root shaping=NULL]
+	Left [label=Left predicate="p.class==Left" schedule=WFQ_Left shaping=NULL]
+	Right [label=Right predicate="p.class==Right" schedule=WFQ_Right shaping=TBF_Right]
+		Root -> Left
+		Root -> Right
+}
