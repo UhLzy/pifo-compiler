@@ -1,0 +1,21 @@
+for (uint32_t i = 0; i < 10000; i++) {
+      if(ele_dis(gen)==1){test_packet("class") = "Left";}
+      else{test_packet("class") = "Right";}
+      
+      test_packet("ptr") = 666;
+      mesh.enq(0, QueueType::PRIORITY_QUEUE, 0, test_packet, i);
+    }
+
+    std::cout << "Finished enqs\n";
+
+    for (uint32_t i = 10000; i < 20000; i++) {
+      auto result = mesh.deq(0, QueueType::PRIORITY_QUEUE, 0, i);
+      std::cout << "Deq result is \"" << result << "\"" << std::endl;
+    }
+
+    assert_exception(mesh.deq(0, QueueType::PRIORITY_QUEUE, 0, 20000).initialized() == false);
+  } catch (const std::exception & e) {
+    std::cerr << "Caught exception in main " << std::endl << e.what() << std::endl;
+    return EXIT_FAILURE;
+  }
+}

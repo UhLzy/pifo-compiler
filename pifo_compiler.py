@@ -29,6 +29,16 @@ class Node:
         self.schedule= self.schedule.replace('"','').replace("'",'"') #fix for parsing errors caused by escaped quotes
         self.predicate=gvnode.obj_dict['attributes']['predicate']
         self.predicate= self.predicate.replace('"','').replace("'",'"')
+        
+        self.fieldMatch="666"
+        
+        self.packetField="ptr"
+        if "." in self.predicate:
+            self.packetField=self.predicate.split('=')[0].split('.')[1] #maybe make more general?
+            self.fieldMatch=self.predicate.split('==')[1]
+        
+        
+        
         shape="NULL"
         if "shaping" in gvnode.obj_dict['attributes'].keys():
             shape= gvnode.obj_dict['attributes']['shaping']
@@ -159,35 +169,51 @@ dig.save(fileName+'Enqueues.dot')
 
 
 ##Output string for pifo-machine
+outFile=open(fileName+'compilation.cc', 'w')
+
+header= open("machine_header.txt",'r')
+for line in header:
+    outFile.write(line)
 
 pipeline = 'PIFOPipeline ' + fileName+ '_pipeline({'
-stageBase = 'PIFOPipelineStage('
+stageBase = 'PIFOPipelineStage pifo'
+
+outputBlocks=[]
+
+outVars = open('compilation.txt', 'w')
 for block in pifos.keys():
+    print str(block)
+    start= stageBase+str(block) + "("
+    
     numQueues=len(pifos[block])
     lookup_table= '{'
-    packet_field='fid'
+    packet_field='fid' #default for now
     schedule='[] (const auto & x) {'
     if type(block) == str:
         ##shaping
         for node in nodes:
             if node.level==int(block[:1]) and node.shaping !="NULL":
-                lookup_table+= '{'+node.predicate+', {Operation::ENQ,' + getParent(node).gvName + '}},'
-                schedule += node.shaping
+                packet_field= node.packetField
+                lookup_table+= '{'+node.fieldMatch+', {Operation::ENQ,' + getParent(node).gvName + '}},'
+                schedule += "if (x(\""+node.packetField +"\")=="+node.fieldMatch + "){"+node.shaping+"}"
     else:
         for node in nodes:
             if node.level==block:
-                predicate=node.predicate
+                packet_field= node.packetField
                 if node in leaves:
-                    lookup_table+= '{'+node.predicate+', {Operation::TRANSMIT, {}}},'
+                    lookup_table+= '{'+node.fieldMatch+', {Operation::TRANSMIT, {}}},'
                 else:
                     kids=getChildren(node)
                     for kid in kids:
-                        lookup_table+= '{'+kid.predicate+', {Operation::DEQ,' + kid.gvName+ '}},'
-                schedule+=node.schedule
+                        packet_field=kid.packetField
+                        lookup_table+= '{'+kid.fieldMatch+', {Operation::DEQ, pifo' + str(kid.level)+ '}},'
+                schedule += "if (x(\""+node.packetField +"\")=="+node.fieldMatch + "){"+node.schedule+"}\n"
     lookup_table+='},'
     schedule+='})'
-    blockString= stageBase+str(numQueues)+ ','+packet_field+',' + lookup_table + schedule
-    pipeline+=blockString+','
+    blockString= start+str(numQueues)+ ',\n'+packet_field+',\n' + lookup_table +"\n"+ schedule
+    outVars.write(blockString + ";\n")
+    outFile.write(blockString + ";\n")
+    pipeline+="pifo" + str(block)+','
     
     
 #numQueues=1
@@ -195,9 +221,24 @@ for block in pifos.keys():
 #lookup_table= '{{1, {Operation::TRANSMIT, {}}}, {2, {Operation::TRANSMIT, {}}},},'
 #schedule = '[] (const auto & x) { return x("fid"); })'
 
-pipeline+='});'
+pipeline+='});\n'
 
-print pipeline
+outVars.write(pipeline)
+outFile.write(pipeline)
+
+##Test of writing full machine.cc
+
+rename = 'PIFOPipeline mesh=' + fileName+ '_pipeline;\n'
+
+outFile.write(rename)
+
+
+footer= open("machine_footer.txt",'r')
+
+for line in footer:
+    outFile.write(line)
+
+
 
 
     

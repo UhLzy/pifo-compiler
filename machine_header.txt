@@ -1,0 +1,19 @@
+#include <iostream>
+#include <random>
+
+#include "pifo_pipeline_stage.h"
+#include "pifo_pipeline.h"
+
+int main() {
+  try {
+    // Random number generation
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<int> ele_dis(1, 2);
+
+    // Traffic generation
+    PIFOPacket test_packet;
+
+    // Single PIFO pipeline stage consisting of
+    // 1 priority and queue
+    // (every PIFO pipeline stage has 1 calendar queue)

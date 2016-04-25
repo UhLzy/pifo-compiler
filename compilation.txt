@@ -1,0 +1,16 @@
+PIFOPipelineStage pifo1(1,
+class,
+{{Left, {Operation::DEQ, pifo2}},{Right, {Operation::DEQ, pifo2}},},
+[] (const auto & x) {if (x("ptr")==666){WFQ_Root}
+});
+PIFOPipelineStage pifo2(2,
+class,
+{{Right, {Operation::TRANSMIT, {}}},{Left, {Operation::TRANSMIT, {}}},},
+[] (const auto & x) {if (x("class")==Right){WFQ_Right}
+if (x("class")==Left){WFQ_Left}
+});
+PIFOPipelineStage pifo2S(1,
+class,
+{{Right, {Operation::ENQ,Root}},},
+[] (const auto & x) {if (x("class")==Right){TBF_Right}});
+PIFOPipeline TBF_pipeline({pifo1,pifo2,pifo2S,});
