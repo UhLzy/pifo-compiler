@@ -26,8 +26,10 @@ class Node:
     ##simplified representation of nodes
     
     def __init__(self, gvnode):
-        self.name=gvnode.obj_dict['attributes']['label']
+        ##self.name=gvnode.obj_dict['attributes']['label']
+        
         self.gvName=gvnode.obj_dict['name']
+        self.name=self.gvName
         self.schedule=gvnode.obj_dict['attributes']['schedule']
         self.schedule= self.schedule.replace('"','').replace("'",'"') #fix for parsing errors caused by escaped quotes
         self.predicate=gvnode.obj_dict['attributes']['predicate']
@@ -106,9 +108,9 @@ def DFS (node, level):
 def enqueue(source, node):
     ##recursively determines enqueue edges for the path of nodes from leaf to root
     enqueues.append((source, node.name))
-    enqMap[source].append(node)
+    enqMap[source].append(node.name)
     if node.shaping != "NULL":
-        enqueues.append((source, node.name + "S"))
+        enqueues.append((source, node.shaping))
         enqMap[node.name+"S"]=[]
         enqueue(node.name+"S", getParent(node))
     else:
@@ -155,6 +157,7 @@ g= pydot.graph_from_dot_data(x)
 fileName= sys.argv[1].split('.')[0]
 
 ##Convert graph input to lists of Nodes and Edges
+
 for node in g.get_node_list():
     temp = Node(node)
     nodes.append(temp)
@@ -165,13 +168,15 @@ for edge in g.get_edge_list():
     edges.append(Edge(edge))
     
 ##DFS to build out PIFO mesh and identify leaves
-DFS(findRoot(),1)
+root=findRoot()
+DFS(root,1)
 
 ##Call enqueue on each leaf to build out enqueue edges 
 for leaf in leaves:
     enqMap["EXT"+leaf.name]=[]
-    extPreds["EXT"+leaf.name]="test_packet("+leaf.packetField +")=="+leaf.fieldMatch 
+    extPreds["EXT"+leaf.name]=leaf.predicate
     enqueue("EXT" + leaf.name, leaf)
+    
     enqueueNodes.append("EXT"+leaf.name)
     
 ##pifos is the allocation of pifos to pifo blocks
@@ -185,92 +190,25 @@ dig.edges(enqueues)
 dig.render(fileName+'Enqueues.gv',view=False)
 dig.save(fileName+'Enqueues.dot')
 
+##mahi target , no shaping support yet
+## Currently predicates must be passed in as C++ code for packet p
 
-##Output string for pifo-machine
-outFile=open(fileName+'compilation.cc', 'w')
 
-header= open("machine_header.txt",'r')
-for line in header:
-    outFile.write(line)
+##Step 1 build priority queue per node
 
-pipeline = 'PIFOPipeline ' + fileName+ '_pipeline({'
-stageBase = 'PIFOPipelineStage pifo'
+outVars=[]
 
-outputBlocks=[]
-
-outVars = open('compilation.txt', 'w')
-indices={}
-i=0
-for block in pifos.keys():
-    print str(block)
-    indices[block] = i
-    i+=1
-    start= stageBase+str(block) + "("
-    
-    numQueues=len(pifos[block])
-    lookup_table= '{'
-    packet_field='fid' #default for now
-    schedule='[] (const auto & x) {'
-    if type(block) == str:
-        ##shaping
-        for node in nodes:
-            if node.level==int(block[:1]) and node.shaping !="NULL":
-                packet_field= node.packetField
-                argName= 'Starget'+node.gvName
-                pifoArgs= 'std::vector<PIFOArguments> '+ argName+'={{' +str(getParent(node).level-1)+',QueueType::PRIORITY_QUEUE,' + getPrioIndex(getParent(node))+'}};\n'
-                outVars.write(pifoArgs)
-                outFile.write(pifoArgs)
-                lookup_table+= '{'+node.fieldMatch+', {Operation::ENQ,' + argName + '}},'
-                schedule += "if (x("+node.packetField +")=="+node.fieldMatch + "){"+node.shaping+"}"
+for node in nodes:
+    if node in leaves:
+        outVars.append("PriorityQueue<QueuedPacket, uint32_t> "+ node.name + "();\n")
     else:
-        for node in nodes:
-            if node.level==block:
-                packet_field= node.packetField
-                if node in leaves:
-                    lookup_table+= '{'+node.fieldMatch+', {Operation::TRANSMIT, {}}},'
-                else:
-                    kids=getChildren(node)
-                    for kid in kids:
-                        packet_field=kid.packetField
-                        argName= 'target'+kid.gvName
-                        pifoArgs= 'std::vector<PIFOArguments> '+ argName+'={{' +str(kid.level-1)+',QueueType::PRIORITY_QUEUE,' + getPrioIndex(kid)+'}};\n'
-                        outVars.write(pifoArgs)
-                        outFile.write(pifoArgs)
-                        lookup_table+= '{'+kid.fieldMatch+', {Operation::DEQ,' + argName+'}},'
-                schedule += "if (x("+node.packetField +")=="+node.fieldMatch + "){"+node.schedule+"}\n"
-    lookup_table+='},'
-    baseCase = 'uint32_t y =0; return y;'
-    schedule+=baseCase
-    schedule+='})'
-    blockString= start+str(numQueues)+ ',\n'+packet_field+',\n' + lookup_table +"\n"+ schedule
-    outVars.write(blockString + ";\n")
-    outFile.write(blockString + ";\n")
-    pipeline+="pifo" + str(block)+','
-    
-    
-#numQueues=1
-#packet_field="fid"
-#lookup_table= '{{1, {Operation::TRANSMIT, {}}}, {2, {Operation::TRANSMIT, {}}},},'
-#schedule = '[] (const auto & x) { return x("fid"); })'
+        outVars.append("PriorityQueue<std::string, uint32_t> "+ node.name + "();\n")
 
-pipeline+='});\n'
+print outVars
+print enqMap
+print extPreds
 
-outVars.write(pipeline)
-outFile.write(pipeline)
-
-##Test of writing full machine.cc
-
-rename = 'PIFOPipeline mesh=' + fileName+ '_pipeline;\n'
-
-outFile.write(rename)
-
-
-mid= open("machine_mid.txt",'r')
-
-for line in mid:
-    outFile.write(line)
-    
-    
+##Build out enq function
 enq=""
 keys= extPreds.keys()
 for i in range(len(keys)):
@@ -281,19 +219,40 @@ for i in range(len(keys)):
     else:
         enq+= "else if("+extPreds[keys[i]]+"){"
     for target in enqMap[keys[i]]:
-        enq += "mesh.enq("+str(target.level-1)+",QueueType::PRIORITY_QUEUE,"+str(getPrioIndex(target))+",test_packet,i);\n"
-        if target.shaping != "NULL":
-            enq+= "mesh.enq(" +str(indices[str(target.level)+"S"])+",QueueType::CALENDAR_QUEUE,0, test_packet,i);\n"
+        enq += target+".enq(p, getPrio(p,\""+target+"\");\n"
     enq+="}\n"
+    
+outFile=open(fileName+'mahi.cc', 'w')
 
+for s in outVars:
+    outFile.write(s)
 outFile.write(enq)
 
 
+###TODO getPrio(packet, str) function
 
-footer= open("machine_footer.txt",'r')
+##Build out deq function
+if (len(nodes) == 1):
+       deq="return "+ root.name+".dequeue();"
+else:
+    deq="std::string ref = "+root.name +".dequeue();\n"
+    
 
-for line in footer:
-    outFile.write(line)
+
+
+
+
+        
+
+
+
+
+
+
+
+
+
+
 
 
     

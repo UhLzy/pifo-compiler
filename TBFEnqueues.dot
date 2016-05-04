@@ -7,6 +7,6 @@ digraph {
 		EXTLeft -> Left
 		EXTLeft -> Root
 		EXTRight -> Right
-		EXTRight -> TBF_Right
-		TBF_Right -> Root
+		EXTRight -> RightS
+		RightS -> Root
 }

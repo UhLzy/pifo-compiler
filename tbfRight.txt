@@ -1,0 +1,16 @@
+static uint32_t last_time=0;
+static uint32_t tokens =0;
+uint32_t send_time = x("time");
+uint32_t r = 1
+uint32_t B=1
+uint32_t plen = 1
+tokens = std::min(tokens +r*(x("time") - last_time),B) ;//r=1, B=1
+if (plen<=tokens){ 
+	return send_time;
+}
+else{
+	send_time = x("time") + (plen-tokens)/r;
+	tokens = tokens -plen;
+	last_time = x("time");
+	return send_time;
+}

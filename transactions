@@ -1,0 +1,97 @@
+uint32_t f = x("fid")
+static std::map<uint32_t, uint32_t> last_finish = {{1, 0}, {2, 0}, {3, 0}, {4, 0}, {5, 0}};
+
+uint32_t start = max ( virtual_time , last_finish [f ])
+
+last_finish [f] = start + x("length") /flow_weight
+return start
+
+
+//have graph specify child weights?
+
+
+strict WFQ
+static std::map<uint32_t, uint32_t> last_fin_time = {{1, 0}, {2, 0}, {3, 0}, {4, 0}, {5, 0}}; auto ret = last_fin_time.at(static_cast<uint32_t>(x("fid"))); last_fin_time.at(static_cast<uint32_t>(x("fid"))) += 1; return ret;
+
+
+
+
+Stop and Go
+if ( now >= frame_end_time ):
+frame_begin_time = frame_end_time
+frame_end_time = frame_begin_time + T
+p. rank = frame_end_time
+
+Stop and Go c++
+uint32_t now = (uint32_t) x("time");
+static uint32_t frame_end_time=1;
+static uint32_t frame_begin_time;
+if (now > frame_end_time){
+	frame_begin_time= frame_end_time
+	frame_end_time= frame_begin_time+1;
+}
+return frame_end_time;
+
+
+
+
+
+
+
+
+
+LSTF
+p. slack = p. slack - p. prev_wait_time ;
+p. rank = p. slack ;
+
+LSTF pm C++
+return (uint32_t) x("slack");
+
+
+
+
+
+
+Min rate guarantees
+
+// Replenish tokens
+tb = tb + min_rate * ( now - last_time ) ;
+if ( tb > BURST_SIZE ) tb = BURST_SIZE ;
+// Check if we have enough tokens
+if ( tb > p. size ):
+p. over_min = 0; // under min . rate
+tb = tb - p. size ;
+else :
+p. over_min = 1; // over min . rate
+last_time = now ;
+p. rank = p. over_min ;
+
+
+
+TBF
+tokens = min ( tokens + r * ( now - last_time ) , B)
+if p. length <= tokens
+p. send_time = now
+else
+p. send_time = now + (p. length - tokens ) / r
+tokens = tokens - p. length
+last_time = now
+p. rank = p. send_time
+
+
+static uint32_t last_time=0;
+static uint32_t tokens =0;
+uint32_t send_time = x("time");
+uint32_t r = 1
+uint32_t B=1
+uint32_t plen = 1
+tokens = std::min(tokens +r*(x("time") - last_time),B) ;//r=1, B=1
+if (plen<=tokens){ 
+	return send_time;
+}
+else{
+	send_time = x("time") + (plen-tokens)/r;
+	tokens = tokens -plen;
+	last_time = x("time");
+	return send_time;
+}

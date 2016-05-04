@@ -1,0 +1,10 @@
+digraph {
+	Root [label=Root predicate=True schedule="uint32_t now = (uint32_t) x(\"time\");
+static uint32_t frame_end_time=1;
+static uint32_t frame_begin_time;if (now > frame_end_time){
+frame_begin_time= frame_end_time;
+frame_end_time= frame_begin_time+1;
+}
+return frame_end_time;
+" shaping=NULL]
+}

@@ -1,0 +1,3 @@
+digraph {
+	Root [label=Root predicate=True schedule="return x(\"slack\");" shaping=NULL]
+}

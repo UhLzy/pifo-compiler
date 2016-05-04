@@ -1,7 +1,7 @@
 digraph {
-	A [label=Root predicate=True schedule=WFQ_Root]
-	B [label=Left predicate="p.class==Left" schedule=WFQ_Left]
-	C [label=Right predicate="p.class==Right" schedule=WFQ_Right]
-		A -> B
-		A -> C
+	Root [label=Root predicate=True schedule="static std::map<uint32_t, uint32_t> last_fin_time = {{1, 0}, {2, 0}, {3, 0}, {4, 0}, {5, 0}}; auto ret = last_fin_time.at(static_cast<uint32_t>(x(\"fid\"))); last_fin_time.at(static_cast<uint32_t>(x(\"fid\"))) += 1; return ret;" shaping=NULL]
+	Left [label=Left predicate="p.class==Left" schedule="static std::map<uint32_t, uint32_t> last_fin_time = {{1, 0}, {2, 0}, {3, 0}, {4, 0}, {5, 0}}; auto ret = last_fin_time.at(static_cast<uint32_t>(x(\"fid\"))); last_fin_time.at(static_cast<uint32_t>(x(\"fid\"))) += 1; return ret;" shaping=NULL]
+	Right [label=Right predicate="p.class==Right" schedule="static std::map<uint32_t, uint32_t> last_fin_time = {{1, 0}, {2, 0}, {3, 0}, {4, 0}, {5, 0}}; auto ret = last_fin_time.at(static_cast<uint32_t>(x(\"fid\"))); last_fin_time.at(static_cast<uint32_t>(x(\"fid\"))) += 1; return ret;" shaping=NULL]
+		Root -> Left
+		Root -> Right
 }

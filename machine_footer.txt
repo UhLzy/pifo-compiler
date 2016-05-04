@@ -1,9 +1,3 @@
-for (uint32_t i = 0; i < 10000; i++) {
-      if(ele_dis(gen)==1){test_packet("class") = "Left";}
-      else{test_packet("class") = "Right";}
-      
-      test_packet("ptr") = 666;
-      mesh.enq(0, QueueType::PRIORITY_QUEUE, 0, test_packet, i);
     }
 
     std::cout << "Finished enqs\n";
