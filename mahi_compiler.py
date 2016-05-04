@@ -204,12 +204,12 @@ for node in nodes:
     else:
         outVars.append("PriorityQueue<std::string, uint32_t> "+ node.name + "();\n")
 
-print outVars
-print enqMap
-print extPreds
+#print outVars
+#print enqMap
+#print extPreds
 
 ##Build out enq function
-enq=""
+enq="void enqueue( QueuedPacket && p ) override {\n"
 keys= extPreds.keys()
 for i in range(len(keys)):
     if i==0:
@@ -222,6 +222,8 @@ for i in range(len(keys)):
         enq += target+".enq(p, getPrio(p,\""+target+"\");\n"
     enq+="}\n"
     
+enq+="}\n"
+    
 outFile=open(fileName+'mahi.cc', 'w')
 
 for s in outVars:
@@ -232,10 +234,34 @@ outFile.write(enq)
 ###TODO getPrio(packet, str) function
 
 ##Build out deq function
+
+def deqPath(node):
+    path=""
+    if node not in leaves:
+        path+="std::string ref"+node.name+ " = "+node.name +".dequeue();\n"
+        kids=getChildren(node)
+        for i in range(len(kids)):
+            if i==0:
+                path+="if (\""+kids[i].name + "\"== ref"+node.name+"){\n"
+                path += deqPath(kids[i]) 
+                path +="}\n"
+            else:
+                path+="else{\n"
+                path += deqPath(kids[i])
+                path +="}\n"
+    else:
+        path+= "return " + node.name+ ".dequeue();\n"
+        
+    return path
+
+
+deq = "QueuedPacket dequeue( void ) override {\n"
 if (len(nodes) == 1):
-       deq="return "+ root.name+".dequeue();"
+    deq+="return "+ root.name+".dequeue();"
 else:
-    deq="std::string ref = "+root.name +".dequeue();\n"
+    deq+= deqPath(root)
+deq+="}\n"
+outFile.write(deq)
     
 
 
