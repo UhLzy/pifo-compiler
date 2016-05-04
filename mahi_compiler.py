@@ -208,6 +208,22 @@ for node in nodes:
 #print enqMap
 #print extPreds
 
+outFile=open(fileName+'mahi.cc', 'w')
+
+header= open("mahi_header.txt",'r')
+for line in header:
+    outFile.write(line)
+
+
+for s in outVars:
+    outFile.write(s)
+
+
+decl= open("mahi_declaration.txt",'r')
+for line in decl:
+    outFile.write(line)
+
+
 ##Build out enq function
 enq="void enqueue( QueuedPacket && p ) override {\n"
 keys= extPreds.keys()
@@ -224,17 +240,37 @@ for i in range(len(keys)):
     
 enq+="}\n"
     
-outFile=open(fileName+'mahi.cc', 'w')
 
-for s in outVars:
-    outFile.write(s)
+
 outFile.write(enq)
 
 
-###TODO getPrio(packet, str) function
+#####Build out getPrio(QueuedPacket, Str) function
+getPrio = "uint32_t getPrio(QueuedPacket x, std::string qName) {\n"
+for i in range(len(nodes)):
+    if i==0:
+        getPrio += "if(qName=="+nodes[i].name+"){\n"
+        getPrio += node.schedule
+        getPrio += "}\n"
+    elif i== (len(nodes)-1):
+        getPrio += "else{\n"
+        getPrio += node.schedule
+        getPrio += "}\n"
+    else:
+        getPrio += "else if(qName=="+nodes[i].name+"){\n"
+        getPrio += node.schedule
+        getPrio += "}\n"
+        
+getPrio+= "}\n"
+        
+outFile.write(getPrio)
+
+
 
 ##Build out deq function
 
+
+##helper function that recursively builds out dequeues
 def deqPath(node):
     path=""
     if node not in leaves:
@@ -262,6 +298,16 @@ else:
     deq+= deqPath(root)
 deq+="}\n"
 outFile.write(deq)
+
+
+##TODO: Build out empty function
+##TODO: build to str function
+
+
+
+outFile.write("};")
+
+
     
 
 

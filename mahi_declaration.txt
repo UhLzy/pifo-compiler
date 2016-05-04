@@ -1,0 +1,7 @@
+public:
+    PIFOPacketPipeline( const std::string & args )
+    {
+        if ( not args.empty() ) {
+            throw std::runtime_error( "InfinitePacketQueue does not take arguments." );
+        }
+    }
