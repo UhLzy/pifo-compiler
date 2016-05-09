@@ -1,8 +1,32 @@
-[![Build Status](https://travis-ci.org/anirudhSK/pifo-compiler.svg?branch=master)](https://travis-ci.org/anirudhSK/pifo-compiler)
+pifo-compiler:
+	-run as : python pifo-compiler.py example.dot
+	- output: 
+		-examplecompilation.cc <- pifo-machine compatible
+		-exampleEnqueues.gv.pdf
+		-printout of mesh configuration
+	-input reqs:
+		-nodes as PIFOs
+		-directed edges from parent to child in tree structure
+		-each node has unique name
+		- names are valid variable names in C++
+		- each node has attributes shaping, schedule, and predicate
+		- predicate either of form "True" or "p.class==match"
+		- schedule is valid c++ function acting on field container x
+		- shaping "NULL" or valid c++ function action on field container x
 
-0. sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
-1. sudo apt-get update -qq
-2. sudo apt-get install -qq g++-4.9
-3. sudo apt-get install git build-essential autoconf libtool
-4. sudo apt-get install -y -qq libgraphviz-dev
-5. ./autogen.sh; ./configure CXX='g++-4.9'; make
+mahi-compiler:
+	-run as : python mahi-compiler.py example.dot
+	- output: 
+		-exampleMahicompilation.cc <- pifo-machine compatible
+		-exampleEnqueues.gv.pdf
+		-printout of mesh configuration
+	-input reqs:
+		-nodes as PIFOs
+		-directed edges from parent to child in tree structure
+		-each node has unique name
+		- names are valid variable names in C++
+		- each node has attributes shaping, schedule, and predicate
+		- predicate either of form "True" or "p.class==match"
+		- schedule is valid c++ function acting on QueuedPacket x
+		- shaping "NULL" or valid c++ function action on QueuedPacket x
+

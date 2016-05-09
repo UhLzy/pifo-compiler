@@ -200,9 +200,9 @@ outVars=[]
 
 for node in nodes:
     if node in leaves:
-        outVars.append("PriorityQueue<QueuedPacket, uint32_t> "+ node.name + "();\n")
+        outVars.append("PriorityQueue<QueuedPacket, uint32_t> "+ node.name + " {};\n")
     else:
-        outVars.append("PriorityQueue<std::string, uint32_t> "+ node.name + "();\n")
+        outVars.append("PriorityQueue<std::string, uint32_t> "+ node.name + " {};\n")
 
 #print outVars
 #print enqMap
@@ -235,7 +235,7 @@ for i in range(len(keys)):
     else:
         enq+= "else if("+extPreds[keys[i]]+"){"
     for target in enqMap[keys[i]]:
-        enq += target+".enq(p, getPrio(p,\""+target+"\");\n"
+        enq += target+".enq(p, getPrio(p,\""+target+"\"));\n"
     enq+="}\n"
     
 enq+="}\n"
@@ -249,7 +249,7 @@ outFile.write(enq)
 getPrio = "uint32_t getPrio(QueuedPacket x, std::string qName) {\n"
 for i in range(len(nodes)):
     if i==0:
-        getPrio += "if(qName=="+nodes[i].name+"){\n"
+        getPrio += "if(qName==\""+nodes[i].name+"\"){\n"
         getPrio += node.schedule
         getPrio += "}\n"
     elif i== (len(nodes)-1):
@@ -257,7 +257,7 @@ for i in range(len(nodes)):
         getPrio += node.schedule
         getPrio += "}\n"
     else:
-        getPrio += "else if(qName=="+nodes[i].name+"){\n"
+        getPrio += "else if(qName==\""+nodes[i].name+"\"){\n"
         getPrio += node.schedule
         getPrio += "}\n"
         
@@ -274,7 +274,7 @@ outFile.write(getPrio)
 def deqPath(node):
     path=""
     if node not in leaves:
-        path+="std::string ref"+node.name+ " = "+node.name +".dequeue();\n"
+        path+="std::string ref"+node.name+ " = "+node.name +".deq();\n"
         kids=getChildren(node)
         for i in range(len(kids)):
             if i==0:
@@ -286,14 +286,14 @@ def deqPath(node):
                 path += deqPath(kids[i])
                 path +="}\n"
     else:
-        path+= "return " + node.name+ ".dequeue();\n"
+        path+= "return " + node.name+ ".deq();\n"
         
     return path
 
 
 deq = "QueuedPacket dequeue( void ) override {\n"
 if (len(nodes) == 1):
-    deq+="return "+ root.name+".dequeue();"
+    deq+="return "+ root.name+".deq();"
 else:
     deq+= deqPath(root)
 deq+="}\n"

@@ -14,15 +14,18 @@ stopandgo+= 'return frame_end_time;\n'
 txn = header= open("tbfRight.txt",'r')
 tbfRight= txn.read()
 
+strict_wfq='static std::map<uint32_t, uint32_t> last_fin_time = {{1, 0}, {2, 0}, {3, 0}, {4, 0}, {5, 0}}; auto ret = last_fin_time.at(static_cast<uint32_t>(x("arrival_time")%2)); last_fin_time.at(static_cast<uint32_t>(x("arrival_time")%2)) += 1; return ret;'
+
+
 
 lstf="return (uint32_t) x(\"slack\");"
 
-dot.node('Root', "Root", predicate="True", schedule=strict_wfq, shaping="NULL" )
-dot.node("Left", "Left", predicate="p.class==Left", schedule=strict_wfq, shaping="NULL")
-dot.node("Right", "Right", predicate = "p.class==Right", schedule=strict_wfq, shaping=tbfRight)
+dot.node('Root', "Name: Root\nPredicate: True \nSchedule: WFQ_Root \nShaping: NULL", predicate="True", schedule=strict_wfq, shaping="NULL" )
+dot.node("Left", "Name: Left\nPredicate: True \nSchedule: WFQ_Left \nShaping: NULL", predicate="p.arrival_time==Left", schedule=strict_wfq, shaping="NULL")
+dot.node("Right", "Name: Right \nPredicate: True \nSchedule: WFQ_Right \nShaping: TBF_RIGHT", predicate = "p.arrival_time==Right", schedule=strict_wfq, shaping="NULL")
 dot.edges([("Root","Left"),("Root","Right")])
 
 print dot.source
 
-dot.render('TBF.gv',view=True)
-dot.save('TBF.dot')
+dot.render('TBFPaper.gv',view=True)
+dot.save('TBFPaper.dot')
