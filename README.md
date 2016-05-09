@@ -1,5 +1,5 @@
 pifo-compiler:
-	-run as : python pifo-compiler.py example.dot
+	-run as : python pifo_compiler.py example.dot
 	- output: 
 		-examplecompilation.cc <- pifo-machine compatible
 		-exampleEnqueues.gv.pdf
@@ -15,7 +15,7 @@ pifo-compiler:
 		- shaping "NULL" or valid c++ function action on field container x
 
 mahi-compiler:
-	-run as : python mahi-compiler.py example.dot
+	-run as : python mahi_compiler.py example.dot
 	- output: 
 		-exampleMahicompilation.cc <- pifo-machine compatible
 		-exampleEnqueues.gv.pdf

@@ -10,7 +10,6 @@
 #include "exception.hh"
 
 #include "priority_queue.h"
-#include "calendar_queue.h"
 
 class PIFOPacketPipeline : public AbstractPacketQueue
 {
