@@ -1,3 +1,7 @@
+Prereqs:
+* sudo pip install graphviz
+* sudo pip install pydot2
+
 pifo-compiler:
 * run as : python pifo_compiler.py example.dot
 * output: 
