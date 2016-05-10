@@ -24,3 +24,6 @@ ltmain.sh
 *.lo
 *.pdf
 *.gv
+*compilation.cc
+*Enqueues.dot
+

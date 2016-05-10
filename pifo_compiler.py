@@ -198,7 +198,7 @@ stageBase = 'PIFOPipelineStage pifo'
 
 outputBlocks=[]
 
-outVars = open('compilation.txt', 'w')
+#outVars = open('compilation.txt', 'w')
 indices={}
 i=0
 for block in pifos.keys():
